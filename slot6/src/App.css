@@ -1,0 +1,57 @@
+.skybound-app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Ảnh nền cửa sổ máy bay */
+.hero-section {
+  background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), 
+              url('https://images.unsplash.com/photo-1544016768-982d1554f0b9?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  min-height: 90vh;
+  padding: 40px 0;
+}
+
+/* Thẻ booking màu trắng mờ (Glassmorphism) */
+.booking-card {
+  background: rgba(255, 255, 255, 0.85);
+  max-width: 1000px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-info-custom { color: #5bc0de; }
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #adb5bd;
+}
+
+.input-with-icon .form-control, .input-with-icon .form-select {
+  padding-left: 38px;
+  background-color: #f8f9fa;
+  border: none;
+}
+
+.promo-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+}
+
+.destination-card { transition: 0.3s; cursor: pointer; }
+.destination-card:hover { transform: translateY(-5px); }
+
+.text-pink { color: #d63384; }
+
+.cursor-pointer { cursor: pointer; }
