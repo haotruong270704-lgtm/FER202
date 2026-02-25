@@ -1,42 +1,46 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import React, { useReducer } from 'react';
+import { Modal, Button, Form, Alert, Spinner } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
 
+const initialFormState = {
+    identifier: '',
+    password: '',
+    errors: {}
+};
+
+function formReducer(state, action) {
+    switch (action.type) {
+        case 'SET_FIELD': return { ...state, [action.field]: action.value };
+        case 'SET_ERRORS': return { ...state, errors: action.errors };
+        case 'RESET_FORM': return initialFormState;
+        default: return state;
+    }
+}
+
 const LoginForm = ({ show, handleClose }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    
-    // Thêm state để quản lý lỗi validation khi để trống
-    const [errors, setErrors] = useState({ username: '', password: '' });
-    
-    const { login, error: authError } = useAuth(); // Lấy hàm login và lỗi từ Context [cite: 53, 290]
+    const [formState, dispatchForm] = useReducer(formReducer, initialFormState);
+    const { login, loading, error, clearError } = useAuth();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        dispatchForm({ type: 'SET_FIELD', field: name, value });
+        clearError(); // Xóa lỗi hệ thống khi người dùng bắt đầu nhập lại 
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        const errors = {};
         
-        // Khởi tạo đối tượng chứa lỗi mới
-        let validationErrors = { username: '', password: '' };
-        let isValid = true;
+        // Required field validation [cite: 309, 570-577]
+        if (!formState.identifier.trim()) errors.identifier = 'Username hoặc Email là bắt buộc.';
+        if (!formState.password.trim()) errors.password = 'Mật khẩu là bắt buộc.';
 
-        // Kiểm tra validation từng trường 
-        if (!username.trim()) {
-            validationErrors.username = 'Tên đăng nhập không được để trống';
-            isValid = false;
-        }
-        if (!password.trim()) {
-            validationErrors.password = 'Mật khẩu không được để trống';
-            isValid = false;
-        }
+        dispatchForm({ type: 'SET_ERRORS', errors });
 
-        setErrors(validationErrors);
-
-        if (isValid) {
-            const success = login(username, password); // Thực hiện login từ AuthContext [cite: 262-287]
-            if (success) {
-                // Reset form và đóng modal nếu thành công
-                setUsername('');
-                setPassword('');
-                setErrors({ username: '', password: '' });
+        if (Object.keys(errors).length === 0) {
+            const result = await login(formState.identifier.trim(), formState.password);
+            if (result.ok) {
+                dispatchForm({ type: 'RESET_FORM' });
                 handleClose();
             }
         }
@@ -45,43 +49,40 @@ const LoginForm = ({ show, handleClose }) => {
     return (
         <Modal show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Đăng Nhập Admin</Modal.Title>
+                <Modal.Title>Đăng Nhập Hệ Thống</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                {/* Lỗi đăng nhập sai từ AuthContext [cite: 290] */}
-                {authError && <Alert variant="danger">{authError}</Alert>}
+                {error && <Alert variant="danger" dismissible onClose={clearError}>{error}</Alert>}
                 
                 <Form onSubmit={handleSubmit} noValidate>
                     <Form.Group className="mb-3">
-                        <Form.Label>Username</Form.Label>
+                        <Form.Label>Username hoặc Email</Form.Label>
                         <Form.Control 
+                            name="identifier"
                             type="text" 
-                            isInvalid={!!errors.username}
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)} 
+                            value={formState.identifier}
+                            onChange={handleChange}
+                            isInvalid={!!formState.errors.identifier}
+                            disabled={loading}
                         />
-                        {/* Hiển thị chữ đỏ ngay dưới ô Username  */}
-                        <Form.Control.Feedback type="invalid">
-                            {errors.username}
-                        </Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{formState.errors.identifier}</Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Password</Form.Label>
+                        <Form.Label>Mật khẩu</Form.Label>
                         <Form.Control 
+                            name="password"
                             type="password" 
-                            isInvalid={!!errors.password}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)} 
+                            value={formState.password}
+                            onChange={handleChange}
+                            isInvalid={!!formState.errors.password}
+                            disabled={loading}
                         />
-                        {/* Hiển thị chữ đỏ ngay dưới ô Password  */}
-                        <Form.Control.Feedback type="invalid">
-                            {errors.password}
-                        </Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{formState.errors.password}</Form.Control.Feedback>
                     </Form.Group>
 
-                    <Button variant="primary" type="submit" className="w-100">
-                        Đăng Nhập
+                    <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+                        {loading ? <><Spinner size="sm" className="me-2" /> Đang kiểm tra...</> : 'Đăng Nhập'}
                     </Button>
                 </Form>
             </Modal.Body>
