@@ -1,50 +1,65 @@
 import React, { useReducer } from 'react';
 import { Button, Card } from 'react-bootstrap';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext'; // Import hook để điều khiển theme hệ thống
 
-// 1. Khởi tạo trạng thái ban đầu cho đèn
-const initialState = { isOn: false };
+const initialState = { isOn: true }; // Mặc định đèn bật (trang sáng)
 
-// 2. Định nghĩa hàm reducer quản lý trạng thái đèn
 function reducer(state, action) {
     switch (action.type) {
-        case 'toggle':
-            return { isOn: !state.isOn };
-        case 'turnOn':
-            return { isOn: true };
-        case 'turnOff':
-            return { isOn: false };
-        default:
-            return state;
+        case 'toggle': return { isOn: !state.isOn };
+        case 'turnOn': return { isOn: true };
+        case 'turnOff': return { isOn: false };
+        default: return state;
     }
 }
 
 function LightSwitch() {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { theme, toggleTheme } = useTheme(); // Sử dụng ThemeContext
+    const { theme, toggleTheme } = useTheme(); // Lấy theme và hàm chuyển đổi từ ThemeContext
+
+    // Hàm xử lý đồng bộ giữa trạng thái Đèn và Theme toàn trang
+    const handleSwitch = (actionType) => {
+        dispatch({ type: actionType });
+
+        // Nếu người dùng chọn Tắt đèn mà trang đang Sáng -> Chuyển toàn trang sang Tối
+        if (actionType === 'turnOff' && theme === 'light') {
+            toggleTheme();
+        } 
+        // Nếu người dùng chọn Bật đèn mà trang đang Tối -> Chuyển toàn trang sang Sáng
+        else if (actionType === 'turnOn' && theme === 'dark') {
+            toggleTheme();
+        }
+        // Nếu dùng nút Chuyển đổi (Toggle)
+        else if (actionType === 'toggle') {
+            toggleTheme();
+        }
+    };
 
     return (
-        <Card className={`mb-4 shadow-sm ${theme === 'dark' ? 'bg-dark text-white' : 'bg-light text-dark'}`}>
+        <Card className={`mb-4 shadow-sm ${theme === 'dark' ? 'bg-dark text-white border-secondary' : 'bg-light text-dark'}`}>
             <Card.Body className="text-center">
-                <h2>Công Tắc Đèn</h2>
-                <p className="display-6 fw-bold">
-                    Đèn hiện đang: <span className={state.isOn ? "text-success" : "text-danger"}>
-                        {state.isOn ? 'Bật' : 'Tắt'}
-                    </span>
+                <i className={`bi ${state.isOn ? 'bi-lightbulb-fill text-warning' : 'bi-lightbulb text-muted'}`} style={{ fontSize: '3rem' }}></i>
+                <h2 className="mt-3">Chế Độ Hệ Thống</h2>
+                <p className="lead">
+                    Trạng thái: <strong>{state.isOn ? 'Đang Sáng' : 'Đang Tối'}</strong>
                 </p>
 
-                <div className="d-flex justify-content-center gap-2 mt-3">
-                    {/* Nút đổi Theme đồng bộ với CounterComponent */}
+                <div className="d-flex justify-content-center gap-3 mt-4">
                     <Button 
-                        variant={theme === 'light' ? 'secondary' : 'outline-light'} 
-                        onClick={toggleTheme}
+                        variant={state.isOn ? "outline-dark" : "success"} 
+                        onClick={() => handleSwitch('turnOn')}
+                        disabled={state.isOn}
                     >
-                        {theme === 'light' ? 'Chế độ Tối' : 'Chế độ Sáng'}
+                        <i className="bi bi-sun-fill me-2"></i>Bật Đèn (Sáng)
                     </Button>
-
-                    <Button variant="primary" onClick={() => dispatch({ type: 'toggle' })}>Chuyển Đổi</Button>
-                    <Button variant="success" onClick={() => dispatch({ type: 'turnOn' })}>Bật Đèn</Button>
-                    <Button variant="danger" onClick={() => dispatch({ type: 'turnOff' })}>Tắt Đèn</Button>
+                    
+                    <Button 
+                        variant={!state.isOn ? "outline-light" : "danger"} 
+                        onClick={() => handleSwitch('turnOff')}
+                        disabled={!state.isOn}
+                    >
+                        <i className="bi bi-moon-stars-fill me-2"></i>Tắt Đèn (Tối)
+                    </Button>
                 </div>
             </Card.Body>
         </Card>

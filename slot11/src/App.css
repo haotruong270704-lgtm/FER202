@@ -48,3 +48,16 @@
     border-color: #dc3545 !important; /* Đổi màu viền sang đỏ khi di chuột vào */
     cursor: pointer;
 }
+/* src/App.css */
+.bg-dark {
+    background-color: #212529 !important; /* Màu đen của Bootstrap */
+}
+
+.text-white {
+    color: #ffffff !important;
+}
+
+/* Đảm bảo toàn bộ body của trang cũng đổi màu */
+body {
+    transition: background-color 0.3s ease;
+}
