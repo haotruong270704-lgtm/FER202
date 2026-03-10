@@ -1,0 +1,9 @@
+import axios from 'axios';
+
+const API = axios.create({ baseURL: 'http://localhost:9999' });
+
+export const getUsers = () => API.get('/users');
+export const getExpenses = () => API.get('/expenses');
+export const addExpense = (data) => API.post('/expenses', data);
+export const updateExpense = (id, data) => API.put(`/expenses/${id}`, data);
+export const deleteExpense = (id) => API.delete(`/expenses/${id}`);
